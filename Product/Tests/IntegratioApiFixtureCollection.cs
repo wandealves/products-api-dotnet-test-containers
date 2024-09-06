@@ -11,7 +11,7 @@ public class IntegrationTestsFixture<TProgram> : IDisposable, IAsyncLifetime whe
   private BaseApiFactory<TProgram> _factory = null!;
   public HttpClient _client = null!;
 
-  public async Task<Product> CreateProduct()
+  public async Task<Product> CreateProductAsync()
   {
     var product = new Product
     {
@@ -25,6 +25,20 @@ public class IntegrationTestsFixture<TProgram> : IDisposable, IAsyncLifetime whe
     var json = await response.Content.ReadAsStringAsync();
     var productCreated = JsonConvert.DeserializeObject<Product>(json);
     return productCreated ?? product;
+  }
+
+  public async Task<Product> GetProductAsync(HttpResponseMessage response)
+  {
+    var json = await response.Content.ReadAsStringAsync();
+    var product = JsonConvert.DeserializeObject<Product>(json);
+    return product ?? new Product();
+  }
+
+  public async Task<IEnumerable<Product>> GetProductsAsync(HttpResponseMessage response)
+  {
+    var json = await response.Content.ReadAsStringAsync();
+    var products = JsonConvert.DeserializeObject<IEnumerable<Product>>(json);
+    return products ?? Enumerable.Empty<Product>();
   }
 
   public HttpClient GetClient()
