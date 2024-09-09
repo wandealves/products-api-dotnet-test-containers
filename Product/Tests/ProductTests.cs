@@ -4,30 +4,26 @@ using FluentAssertions;
 
 namespace Tests;
 
-[Collection(nameof(IntegrationApiFixtureCollection))]
-public class ProductTests
+public class ProductTests : BaseIntegrationTest
 {
-  private readonly IntegrationTestsFixture<Program> _fixture;
-
-  public ProductTests(IntegrationTestsFixture<Program> fixture)
+  public ProductTests(IntegrationTestWebAppFactory factory) : base(factory)
   {
-    _fixture = fixture;
-  }
 
+  }
 
   [Fact(DisplayName = "Obter todosprodutos")]
   [Trait("Categoria", "Produto")]
   public async Task GetAll_ShouldReturnProduct_WhenProductExists()
   {
     // Arrange
-    _ = await _fixture.CreateProductAsync();
-    _ = await _fixture.CreateProductAsync();
-    _ = await _fixture.CreateProductAsync();
-    var client = _fixture.GetClient();
+    _ = await CreateProductAsync();
+    _ = await CreateProductAsync();
+    _ = await CreateProductAsync();
+    var client = GetClient();
     // Act
     var response = await client.GetAsync("/api/products");
     await response.Content.ReadAsStringAsync();
-    var products = await _fixture.GetProductsAsync(response);
+    var products = await GetProductsAsync(response);
     // Assert
     products.Should().HaveCount(3);
     response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -38,8 +34,8 @@ public class ProductTests
   public async Task Get_ShouldReturnProduct_WhenProductExists()
   {
     // Arrange
-    var product = await _fixture.CreateProductAsync();
-    var client = _fixture.GetClient();
+    var product = await CreateProductAsync();
+    var client = GetClient();
     // Act
     var response = await client.GetAsync($"/api/products/{product.Id}");
     await response.Content.ReadAsStringAsync();
@@ -58,7 +54,7 @@ public class ProductTests
       Name = "Product 1",
       Price = 10
     };
-    var client = _fixture.GetClient();
+    var client = GetClient();
     // Act
     var response = await client.PostAsync("/api/products", product.ToStringContent());
     await response.Content.ReadAsStringAsync();
@@ -72,16 +68,16 @@ public class ProductTests
   public async Task Update_ShouldThrow_WhenProductIsNull()
   {
     // Arrange
-    var product = await _fixture.CreateProductAsync();
+    var product = await CreateProductAsync();
     product.Name = "Product Updated";
-    var client = _fixture.GetClient();
+    var client = GetClient();
     // Act
     var response = await client.PutAsync($"/api/products/{product.Id}", product.ToStringContent());
     await response.Content.ReadAsStringAsync();
 
     var responseGet = await client.GetAsync($"/api/products/{product.Id}");
     await responseGet.Content.ReadAsStringAsync();
-    var productGet = await _fixture.GetProductAsync(responseGet);
+    var productGet = await GetProductAsync(responseGet);
     // Assert
     response.Content.Should().NotBeNull();
     response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -96,8 +92,8 @@ public class ProductTests
   public async Task Delete_ShouldDeleteProduct_WhenProductExists()
   {
     // Arrange
-    var product = await _fixture.CreateProductAsync();
-    var client = _fixture.GetClient();
+    var product = await CreateProductAsync();
+    var client = GetClient();
     // Act
     var response = await client.DeleteAsync($"/api/products/{product.Id}");
     await response.Content.ReadAsStringAsync();

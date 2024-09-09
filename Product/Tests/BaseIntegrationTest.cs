@@ -3,13 +3,19 @@ using Newtonsoft.Json;
 
 namespace Tests;
 
-[CollectionDefinition(nameof(IntegrationApiFixtureCollection))]
-public class IntegrationApiFixtureCollection : IClassFixture<IntegrationTestsFixture<Program>> { }
-
-public class IntegrationTestsFixture<TProgram> : IDisposable, IAsyncLifetime where TProgram : class
+public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>
 {
-  private BaseApiFactory<TProgram> _factory = null!;
   public HttpClient _client = null!;
+  public BaseIntegrationTest(IntegrationTestWebAppFactory factory)
+  {
+    _client = factory.CreateClient();
+    _client.BaseAddress = new Uri("https://localhost");
+  }
+
+  public HttpClient GetClient()
+  {
+    return _client;
+  }
 
   public async Task<Product> CreateProductAsync()
   {
@@ -39,29 +45,5 @@ public class IntegrationTestsFixture<TProgram> : IDisposable, IAsyncLifetime whe
     var json = await response.Content.ReadAsStringAsync();
     var products = JsonConvert.DeserializeObject<IEnumerable<Product>>(json);
     return products ?? Enumerable.Empty<Product>();
-  }
-
-  public HttpClient GetClient()
-  {
-    return _client;
-  }
-
-  public async Task InitializeAsync()
-  {
-    _factory = new BaseApiFactory<TProgram>();
-    await _factory.StartDatabaseAsync();
-    _client = _factory.CreateClient();
-    _client.BaseAddress = new Uri("https://localhost");
-  }
-
-  public void Dispose()
-  {
-    _client.Dispose();
-    _factory.Dispose();
-  }
-
-  public async Task DisposeAsync()
-  {
-    await _factory.StopDatabaseAsync();
   }
 }
