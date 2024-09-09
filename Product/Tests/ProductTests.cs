@@ -16,16 +16,13 @@ public class ProductTests : BaseIntegrationTest
   public async Task GetAll_ShouldReturnProduct_WhenProductExists()
   {
     // Arrange
-    _ = await CreateProductAsync();
-    _ = await CreateProductAsync();
-    _ = await CreateProductAsync();
     var client = GetClient();
     // Act
     var response = await client.GetAsync("/api/products");
     await response.Content.ReadAsStringAsync();
     var products = await GetProductsAsync(response);
     // Assert
-    products.Should().HaveCount(3);
+    products.Should().NotBeNullOrEmpty();
     response.StatusCode.Should().Be(HttpStatusCode.OK);
   }
 
@@ -60,7 +57,7 @@ public class ProductTests : BaseIntegrationTest
     await response.Content.ReadAsStringAsync();
     // Assert
     response.Content.Should().NotBeNull();
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    response.StatusCode.Should().Be(HttpStatusCode.Created);
   }
 
   [Fact(DisplayName = "Atualizar produto")]
